@@ -9,7 +9,7 @@ class Bytebank_app extends StatelessWidget {
   Widget build(BuildContext context) {
     return MaterialApp(
       home: Scaffold(
-        body: Formulario_transferencia(),
+        body: Lista_transferencia(),
       ),
     );
   }
@@ -26,46 +26,34 @@ class Formulario_transferencia extends StatelessWidget {
         appBar: AppBar(title: Text('Criando Transferência')),
         body: Column(
           children: [
-            Padding(
-              padding: const EdgeInsets.all(16.0),
-              child: TextField(
+            Item_formulario(
                 controller: _controlador_numero_conta,
-                style: TextStyle(fontSize: 20),
-                decoration: InputDecoration(
-                    labelText: 'Número da conta', hintText: '0000'),
-                keyboardType: TextInputType.number,
-              ),
-            ),
-            Padding(
-              padding: const EdgeInsets.all(16.0),
-              child: TextField(
+                rotulo: 'Número da conta',
+                dica: '0000-0'),
+            Item_formulario(
                 controller: _controlador_valor,
-                style: TextStyle(fontSize: 20),
-                decoration: InputDecoration(
-                    icon: Icon(Icons.monetization_on),
-                    labelText: 'Valor',
-                    hintText: '0.00'),
-                keyboardType: TextInputType.number,
-              ),
-            ),
+                rotulo: 'Valor',
+                dica: '0.00',
+                icone: Icons.monetization_on),
             ElevatedButton(
               child: Text('Confirmar'),
-              onPressed: () {
-                final int numero_conta = int.parse(_controlador_numero_conta.text);
-                final double valor = double.parse(_controlador_valor.text);
-                debugPrint('Clicou no botão');
-                debugPrint(_controlador_numero_conta.text);
-                if(numero_conta != null && numero_conta != 0
-                    && valor != null && valor != 0){
-                  Item_transferencia(quantidade: valor, conta: numero_conta);
-                  debugPrint('Transferência efetuada com sucesso!');
-                } else{
-                  debugPrint('Transferência não efetuada.');
-                }
-              },
+              onPressed: () => _cria_transferencia(),
             ),
           ],
         ));
+  }
+
+  void _cria_transferencia() {
+    final int? numero_conta = int.tryParse(_controlador_numero_conta.text);
+    final double? valor = double.tryParse(_controlador_valor.text);
+    if (numero_conta != 0 &&
+        numero_conta != null &&
+        valor != 0 &&
+        valor != null) {
+      final transferencia_criada =
+          Transferencia(valor: valor, numero_conta: numero_conta);
+      debugPrint('$transferencia_criada');
+    }
   }
 }
 
@@ -78,9 +66,9 @@ class Lista_transferencia extends StatelessWidget {
       ),
       body: Column(
         children: <Widget>[
-          Item_transferencia(quantidade: 500.0, conta: 001),
-          Item_transferencia(quantidade: 600.0, conta: 002),
-          Item_transferencia(quantidade: 700.0, conta: 001),
+          Item_transferencia(Transferencia(valor: 500.0, numero_conta: 001)),
+          Item_transferencia(Transferencia(valor: 800.0, numero_conta: 002)),
+          Item_transferencia(Transferencia(valor: 1500.0, numero_conta: 4661)),
         ],
       ),
       floatingActionButton:
@@ -90,18 +78,59 @@ class Lista_transferencia extends StatelessWidget {
 }
 
 class Item_transferencia extends StatelessWidget {
-  double quantidade;
-  int conta;
+  final Transferencia _transferencia;
 
-  Item_transferencia({required this.quantidade, required this.conta});
+  const Item_transferencia(this._transferencia);
 
   @override
   Widget build(BuildContext context) {
     return Card(
         child: ListTile(
       leading: Icon(Icons.monetization_on),
-      title: Text('Valor: R\$ ${quantidade.toStringAsFixed(2)}'),
-      subtitle: Text('Conta: ${conta.toString()}'),
+      title: Text('Valor: R\$ ${_transferencia.valor.toStringAsFixed(2)}'),
+      subtitle: Text('Conta: ${_transferencia.numero_conta.toString()}'),
     ));
+  }
+}
+
+class Transferencia {
+  final double valor;
+  final int numero_conta;
+
+  @override
+  String toString() {
+    return 'Transferencia{valor: $valor, numero_conta: $numero_conta}';
+  }
+
+  Transferencia({required this.valor, required this.numero_conta});
+}
+
+class Item_formulario extends StatelessWidget {
+  final TextEditingController controller;
+  final String rotulo;
+  final String dica;
+  final IconData? icone;
+
+  Item_formulario(
+      {required this.controller,
+      required this.rotulo,
+      required this.dica,
+      this.icone});
+
+  @override
+  Widget build(BuildContext context) {
+    return Padding(
+      padding: const EdgeInsets.all(16.0),
+      child: TextField(
+        controller: controller,
+        style: TextStyle(fontSize: 20),
+        decoration: InputDecoration(
+          labelText: rotulo,
+          hintText: dica,
+          icon: icone != null ? Icon(icone) : null,
+        ),
+        keyboardType: TextInputType.number,
+      ),
+    );
   }
 }
